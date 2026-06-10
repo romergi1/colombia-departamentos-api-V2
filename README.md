@@ -151,4 +151,25 @@ colombia-departamentos-api/
 ---
 
 ## Licencia
+
+## Flujo CI/CD implementado
+
+Este proyecto implementa un flujo básico de integración continua y entrega continua para una API REST desarrollada en Node.js + Express.
+
+### Ramas del repositorio
+
+El repositorio maneja las siguientes ramas mínimas:
+
+- `Dev`: rama de desarrollo.
+- `Qa`: rama de validación funcional y técnica.
+- `PRD`: rama candidata a producción.
+- `Master`: rama estable para entrega final.
+
+### Pipeline CI - GitHub Actions
+
+El pipeline de integración continua se encuentra en:
+
+```text
+.github/workflows/ci.yml
+
 MIT
