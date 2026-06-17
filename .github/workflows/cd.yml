@@ -1,0 +1,70 @@
+name: CD - Docker Build Push and Kubernetes Deploy
+
+on:
+  push:
+    branches:
+      - Qa
+      - PRD
+      - Master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/romergi1/colombia-departamentos-api
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+
+    steps:
+      - name: Checkout del codigo
+        uses: actions/checkout@v6
+
+      - name: Definir tag de imagen
+        id: meta
+        run: echo "image_tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Login en GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Construir imagen Docker
+        run: |
+          docker build \
+            -t $IMAGE_NAME:${{ steps.meta.outputs.image_tag }} \
+            -t $IMAGE_NAME:latest .
+
+      - name: Publicar imagen Docker
+        run: |
+          docker push $IMAGE_NAME:${{ steps.meta.outputs.image_tag }}
+          docker push $IMAGE_NAME:latest
+
+  deploy-kubernetes:
+    name: Deploy to Kubernetes
+    needs: build-and-push
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout del codigo
+        uses: actions/checkout@v6
+
+      - name: Validar conexion con Kubernetes
+        run: kubectl cluster-info
+
+      - name: Crear namespace y recursos base
+        run: kubectl apply -f k8s/
+
+      - name: Actualizar imagen del deployment
+        run: |
+          kubectl set image deployment/colombia-departamentos-api \
+            colombia-departamentos-api=$IMAGE_NAME:${{ needs.build-and-push.outputs.image_tag }} \
+            -n devops-lab
+
+      - name: Validar despliegue
+        run: kubectl rollout status deployment/colombia-departamentos-api -n devops-lab

@@ -1,12 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: departamentos-api-svc
-  namespace: departamentos
+  name: colombia-departamentos-api
+  namespace: devops-lab
+  labels:
+    app: colombia-departamentos-api
 spec:
   type: NodePort
   selector:
-    app: departamentos-api
+    app: colombia-departamentos-api
   ports:
     - name: http
       port: 80

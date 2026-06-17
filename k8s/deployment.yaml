@@ -1,38 +1,55 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: departamentos-api
-  namespace: departamentos
+  name: colombia-departamentos-api
+  namespace: devops-lab
+  labels:
+    app: colombia-departamentos-api
 spec:
-  replicas: 5
+  replicas: 2
   selector:
     matchLabels:
-      app: departamentos-api
+      app: colombia-departamentos-api
   template:
     metadata:
       labels:
-        app: departamentos-api
+        app: colombia-departamentos-api
     spec:
+      serviceAccountName: colombia-departamentos-api-sa
       containers:
-        - name: departamentos-api
-          image: colombia-departamentos-api:1.0
-          imagePullPolicy: Never
+        - name: colombia-departamentos-api
+          image: ghcr.io/romergi1/colombia-departamentos-api:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
-          env:
-            - name: PORT
-              value: "3000"
-            - name: BASE_PATH
-              value: "/api/v1"
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 3000
-            initialDelaySeconds: 3
-            periodSeconds: 10
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+
           livenessProbe:
             httpGet:
               path: /health
               port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 15
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
             initialDelaySeconds: 10
-            periodSeconds: 20
+            periodSeconds: 10
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 10001
+            capabilities:
+              drop:
+                - ALL

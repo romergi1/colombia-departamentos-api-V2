@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: colombia-departamentos-api-network-policy
+  namespace: devops-lab
+spec:
+  podSelector:
+    matchLabels:
+      app: colombia-departamentos-api
+  policyTypes:
+    - Ingress
+  ingress:
+    - from: []
+      ports:
+        - protocol: TCP
+          port: 3000
